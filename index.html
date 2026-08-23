@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Офис с Агентами</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+        }
+
+        #canvas {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        #control-panel {
+            width: 300px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-section {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+
+        .panel-section h3 {
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-success {
+            background: #51cf66;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-success:hover {
+            background: #40c057;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(81, 207, 102, 0.4);
+        }
+
+        .agent-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .agent-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .agent-item.director {
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            border-color: #667eea;
+        }
+
+        .agent-item.worker {
+            background: linear-gradient(135deg, #51cf6620, #40c05720);
+            border-color: #51cf66;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .agent-status {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .status-active {
+            color: #51cf66;
+            font-weight: 600;
+        }
+
+        .status-working {
+            color: #ffd93d;
+            font-weight: 600;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 11px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .btn-small:hover {
+            background: #ff5252;
+        }
+
+        .status-panel {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .status-value {
+            color: #333;
+            font-weight: 700;
+        }
+
+        .status-value.active {
+            color: #51cf66;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #0d47a1;
+            line-height: 1.5;
+        }
+
+        .task-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-task {
+            flex: 1;
+            min-width: 80px;
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .btn-task:hover {
+            background: #5568d3;
+        }
+
+        #refresh-status {
+            width: 100%;
+            background: #667eea;
+            color: white;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas"></div>
+        <div id="control-panel">
+            <!-- Директор -->
+            <div class="panel-section">
+                <h3>👨‍💼 Директор</h3>
+                <div class="input-group">
+                    <input type="text" id="directorName" placeholder="Имя директора" value="Владелец">
+                    <button class="btn-primary" onclick="createDirector()">Создать</button>
+                </div>
+                <div id="directorInfo" class="info-box" style="display: none;">
+                    Директор может нанимать и увольнять рабочих
+                </div>
+            </div>
+
+            <!-- Наем рабочих -->
+            <div class="panel-section">
+                <h3>👷 Рабочие</h3>
+                <div class="input-group">
+                    <input type="text" id="workerName" placeholder="Имя рабочего">
+                </div>
+                <div class="input-group">
+                    <select id="taskType">
+                        <option value="GENERAL">Общая работа</option>
+                        <option value="PROGRAMMING">Программирование</option>
+                        <option value="DESIGN">Дизайн</option>
+                        <option value="MANAGEMENT">Управление</option>
+                    </select>
+                </div>
+                <button class="btn-success" onclick="hireWorker()">Нанять рабочего</button>
+                <div class="divider"></div>
+                <h4 style="font-size: 12px; color: #666; margin-bottom: 10px;">Список рабочих:</h4>
+                <div id="workersList" class="agent-list"></div>
+            </div>
+
+            <!-- Управление задачами -->
+            <div class="panel-section">
+                <h3>📋 Задачи</h3>
+                <div class="task-controls">
+                    <button class="btn-task" onclick="assignTask('WORK')">Работать</button>
+                    <button class="btn-task" onclick="assignTask('BREAK')">Перерыв</button>
+                    <button class="btn-task" onclick="assignTask('MEETING')">Встреча</button>
+                </div>
+            </div>
+
+            <!-- Статус -->
+            <div class="panel-section">
+                <h3>📊 Статус офиса</h3>
+                <div id="statusPanel" class="status-panel">
+                    <div class="status-item">
+                        <span class="status-label">Директор:</span>
+                        <span class="status-value" id="directorStatus">Не создан</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Рабочих:</span>
+                        <span class="status-value active" id="workerCount">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Рабочих мест:</span>
+                        <span class="status-value active" id="freeWorkstations">6</span>
+                    </div>
+                </div>
+                <button id="refresh-status" onclick="updateStatus()" style="margin-top: 10px;">🔄 Обновить статус</button>
+            </div>
+
+            <!-- Справка -->
+            <div class="panel-section">
+                <h3>ℹ️ Справка</h3>
+                <div class="info-box">
+                    <strong>1. Создайте директора</strong><br>
+                    <strong>2. Нанимайте рабочих</strong><br>
+                    <strong>3. Они автоматически идут на рабочие места</strong><br>
+                    <strong>4. Увольняйте рабочих кнопкой ✕</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import Office3D from './office/Office3D.js';
+
+        let office3D = null;
+
+        // Инициализация
+        window.addEventListener('load', () => {
+            office3D = new Office3D('canvas');
+            window.addEventListener('resize', () => office3D.onWindowResize());
+            updateStatus();
+        });
+
+        // Создать директора
+        window.createDirector = function() {
+            const name = document.getElementById('directorName').value || 'Владелец';
+            if (!office3D) return;
+
+            office3D.createDirectorInScene(name);
+            document.getElementById('directorInfo').style.display = 'block';
+            updateStatus();
+        };
+
+        // Нанять рабочего
+        window.hireWorker = function() {
+            const name = document.getElementById('workerName').value || `Рабочий ${Date.now() % 1000}`;
+            const taskType = document.getElementById('taskType').value;
+            
+            if (!office3D) return;
+
+            office3D.hireWorkerInScene(name, taskType);
+            document.getElementById('workerName').value = '';
+            updateStatus();
+            updateWorkersList();
+        };
+
+        // Обновить список рабочих
+        window.updateWorkersList = function() {
+            if (!office3D) return;
+
+            const workers = office3D.agentManager.workers;
+            const list = document.getElementById('workersList');
+            list.innerHTML = '';
+
+            workers.forEach(worker => {
+                const item = document.createElement('div');
+                item.className = 'agent-item worker';
+                item.innerHTML = `
+                    <div>
+                        <div class="agent-name">${worker.name}</div>
+                        <div class="agent-status">
+                            Статус: <span class="status-${worker.status}">${worker.status}</span>
+                        </div>
+                        <div class="agent-status">Тип: ${worker.taskType}</div>
+                    </div>
+                    <button class="btn-small" onclick="fireWorkerById('${worker.id}')">✕</button>
+                `;
+                list.appendChild(item);
+            });
+        };
+
+        // Уволить рабочего
+        window.fireWorkerById = function(workerId) {
+            if (!office3D) return;
+            if (confirm('Вы уверены, что хотите уволить этого рабочего?')) {
+                office3D.fireWorkerFromScene(workerId);
+                updateStatus();
+                updateWorkersList();
+            }
+        };
+
+        // Назначить задачу
+        window.assignTask = function(taskType) {
+            if (!office3D) return;
+
+            const workers = office3D.agentManager.workers;
+            const taskDescriptions = {
+                'WORK': 'Работа на компьютере',
+                'BREAK': 'Перерыв (кофе-брейк)',
+                'MEETING': 'Участие в встрече'
+            };
+
+            workers.forEach(worker => {
+                if (worker.status === 'IDLE') {
+                    office3D.agentManager.assignTask(worker.id, {
+                        description: taskDescriptions[taskType],
+                        type: taskType
+                    });
+                }
+            });
+
+            updateStatus();
+            updateWorkersList();
+        };
+
+        // Обновить статус
+        window.updateStatus = function() {
+            if (!office3D) return;
+
+            const status = office3D.getStatus();
+            const directorStatus = document.getElementById('directorStatus');
+            const workerCount = document.getElementById('workerCount');
+
+            if (status.director) {
+                directorStatus.textContent = status.director.name;
+                directorStatus.className = 'status-value active';
+            } else {
+                directorStatus.textContent = 'Не создан';
+                directorStatus.className = 'status-value';
+            }
+
+            workerCount.textContent = status.totalWorkers;
+
+            const freeWorkstations = 6 - status.totalWorkers;
+            document.getElementById('freeWorkstations').textContent = Math.max(0, freeWorkstations);
+
+            updateWorkersList();
+        };
+
+        // Автоматическое обновление каждые 2 секунды
+        setInterval(updateStatus, 2000);
+
+        console.log('🎮 3D Офис загружен!');
+        console.log('📌 Начните с создания директора');
+    </script>
+</body>
+</html>
