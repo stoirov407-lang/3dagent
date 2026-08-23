@@ -1,20 +1,34 @@
 {
-  "name": "3dagent-office",
+  "name": "3dagent",
   "version": "1.0.0",
-  "description": "3D Office with Multi-Agent System",
+  "description": "3D Office with AI Agents - Interactive agent management system",
+  "main": "index.html",
   "type": "module",
-  "main": "index.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "serve": "vite preview --port 4173"
   },
+  "keywords": [
+    "3d",
+    "agents",
+    "three.js",
+    "office",
+    "simulation",
+    "task-management",
+    "ai"
+  ],
+  "author": "stoirov407",
+  "license": "MIT",
   "dependencies": {
-    "three": "^r128",
-    "axios": "^1.4.0"
+    "three": "^r128"
   },
   "devDependencies": {
-    "vite": "^4.0.0",
-    "@types/node": "^20.0.0"
+    "vite": "^4.5.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
   }
 }
